@@ -3,41 +3,42 @@ import java.io.*;
 public class DungeonGen{
   
   //size of the map
-  private int xsize = 0;
-  private int ysize = 0;
+  private static int xsize = 0;
+  private static int ysize = 0;
+  public static int level = 0;
+  static int dungeon_objects = 0;
+  static int x = 0;
+  static int y = 0;
   
   //number of "objects" to generate on the map
-  private int objects = 0;
-  
-  private int chanceRoom = 65;
-
-  
+  private static int objects = 0; 
+  private static int chanceRoom = 65; 
   //our map
-  private int[] dungeon_map = {};
+  private static int[] dungeon_map = {};
   
   //the old seed from the RNG is saved in this one
-  private long oldseed = 0;
+  private static long oldseed = 0;
   
   //a list over tile types we're using
-  final private int tileUnused = 0;
-  final private int tileDirtWall = 1; //not in use
-  final private int tileDirtFloor = 2;
-  final private int tileStoneWall = 3;
-  final private int tileCorridor = 4;
-  final private int tileDoor = 5;
-  final private int tileUpStairs = 6;
-  final private int tileDownStairs = 7;
+  final private static int tileUnused = 0;
+  final private static int tileDirtWall = 1; //not in use
+  final private static int tileDirtFloor = 2;
+  final private static int tileStoneWall = 3;
+  final private static int tileCorridor = 4;
+  final private static int tileDoor = 5;
+  final private static int tileUpStairs = 6;
+  final private static int tileDownStairs = 7;
 
   
   //misc. messages to print
-  private String msgXSize = "X size of dungeon: \t";
-  private String msgYSize = "Y size of dungeon: \t";
-  private String msgMaxObjects = "max # of objects: \t";
-  private String msgNumObjects = "# of objects made: \t";
-  private String msgHelp = "";
-  private String msgDetailedHelp = "";
+  private static String msgXSize = "X size of dungeon: \t";
+  private static String msgYSize = "Y size of dungeon: \t";
+  private static String msgMaxObjects = "max # of objects: \t";
+  private static String msgNumObjects = "# of objects made: \t";
+  private static String msgHelp = "";
+  private static String msgDetailedHelp = "";
   
-  void createDungeon(int inx, int iny, int inobj) {
+  static void createDungeon(int inx, int iny, int inobj, int level) {
     
     if (inobj < 1) objects = 10;
     else objects = inobj;
@@ -205,20 +206,21 @@ public class DungeonGen{
     }
     
     System.out.println(msgNumObjects + currentFeatures);
+    writeDungeon(level);
     
   }
   
   //setting a tile's type
-  private void setCell(int x, int y, int celltype) {
+  private static void setCell(int x, int y, int celltype) {
     dungeon_map[x + xsize * y] = celltype;
   }
   
   //returns the type of a tile
-  private int getCell(int x, int y) {
+  private static int getCell(int x, int y) {
     return dungeon_map[x + xsize * y];
   }
 
-  private int getRand(int min, int max) {
+  private static int getRand(int min, int max) {
 // i readded the oldseed thing just so we dont get repeating seeds if we generate 2 levels simultanously(we shouldnt but its a just in case ting)
     Date now = new Date();
     long seed = now.getTime() + oldseed;
@@ -233,7 +235,7 @@ public class DungeonGen{
   }
   
   
-  private boolean makeCorridor(int x, int y, int lenght, int direction) {
+  private static boolean makeCorridor(int x, int y, int lenght, int direction) {
     int len = getRand(2, lenght);
     int floor = tileCorridor;
     int dir = 0;
@@ -303,7 +305,7 @@ public class DungeonGen{
   
   
   
-  private boolean makeRoom(int x, int y, int xlength, int ylength, int direction) {
+  private static boolean makeRoom(int x, int y, int xlength, int ylength, int direction) {
     int xlen = getRand(4, xlength);
     int ylen = getRand(4, ylength);
     
@@ -403,12 +405,12 @@ public class DungeonGen{
     }
     return true;
   }
-  public void writeDungeon()
+  public static void writeDungeon(int level)
   {
     FileWriter fWriter = null;
     BufferedWriter writer = null;
     try {
-      fWriter = new FileWriter("map.txt");
+      fWriter = new FileWriter(level+ ".txt");
       writer = new BufferedWriter(fWriter);
       writer.write((ysize-2)  + " " + (xsize-2));
       writer.newLine();
@@ -426,7 +428,7 @@ public class DungeonGen{
     }
   }
   //
-  public void showDungeon(){
+  public static void showDungeon(){
     for (int y = 0; y < ysize; y++){
       for (int x = 0; x < xsize; x++){
         switch(getCell(x, y)){
@@ -464,7 +466,7 @@ public class DungeonGen{
   }
   public static void main(String[] args){
     //initial stuff used in making the map
-    int x = 25; int y = 37; int dungeon_objects = 15; 
+    x = 102; y = 102; dungeon_objects = 150;
     //convert a string to a int, if there's more then one arg
     if (args.length >= 1)
       dungeon_objects = Integer.parseInt(args[0]);
@@ -474,10 +476,11 @@ public class DungeonGen{
     if (args.length >= 3)
       y = Integer.parseInt(args[2]);
     DungeonGen generator = new DungeonGen();
-    generator.createDungeon(x, y, dungeon_objects);
+    for(level = 0; level <= 5; level++)
+    {
+    generator.createDungeon(x, y, dungeon_objects, level);
+    }
     //generator.showDungeon();
-    generator.writeDungeon();
+    // generator.writeDungeon(level);
   }
 }
-
-
