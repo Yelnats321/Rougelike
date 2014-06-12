@@ -77,7 +77,7 @@ public class Renderer extends JPanel/* implements ActionListener*/{
     
     Entity enemy1 = new Entity();
     enemy1.addComponent(new CMoving(enemy1, 6,6));
-    enemy1.addComponent(new CAI(enemy1, 15));
+    enemy1.addComponent(new CAI(enemy1, 9));
     enemy1.addComponent(new CResources(enemy1));
     manager.addEntity(enemy1);
     

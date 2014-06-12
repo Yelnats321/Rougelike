@@ -3,7 +3,7 @@ import java.util.*;
 class Entity{
   private Map<Class, CBase> components = new HashMap<Class, CBase>();
   private static EntityManager manager;
-
+  public boolean live = true;
   public static void setManager(EntityManager m){
     manager = m;
   }
@@ -14,6 +14,7 @@ class Entity{
     return components.get(ob);
   }
   public void kill(){
+    live = false;
     manager.removeEntity(this);
     Iterator i = components.entrySet().iterator();
     while(i.hasNext()){

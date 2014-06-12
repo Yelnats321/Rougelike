@@ -16,7 +16,19 @@ class CAI extends CBase implements Action{
     //very basic, will be replaced
     final int diffX = moving.getX() - playerMoving.getX();
     final int diffY = moving.getY() - playerMoving.getY();
-    if(Math.abs(diffX) > Math.abs(diffY)){
+    if(Math.abs(diffX) == 1 && Math.abs(diffY)==0){
+      if(diffX > 0)
+        moving.attack(Direction.LEFT);
+      else
+        moving.attack(Direction.RIGHT);
+    }
+    else if(Math.abs(diffY) == 1 && Math.abs(diffX)==0){
+      if(diffY >0)
+        moving.attack(Direction.UP);
+      else
+        moving.attack(Direction.DOWN);
+    }
+    else if(Math.abs(diffX) > Math.abs(diffY)){
       if(diffX > 0)
         moving.move(Direction.LEFT);
       else
