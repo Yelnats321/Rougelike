@@ -55,4 +55,5 @@ class CMoving extends CBase{
   public int getX(){return pos.x;}
   public int getY(){return pos.y;}
   public Position getPos(){return pos;}
+  public void setPos(Position p){pos = p;}
 }

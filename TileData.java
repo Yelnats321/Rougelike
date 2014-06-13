@@ -38,11 +38,18 @@ public class TileData {
     }catch(IOException e){
       throw new RuntimeException("Tileset file missing");
     }
-    for(int i = 0; i < 5; i++)
-    tiles.put(i, new TileData(i));
-    tiles.get(1).opaque=true;
+    tiles.put(0, new TileData(0));
+    tiles.get(0).opaque = true;
+    tiles.get(0).collideable = true;
+    tiles.put(46, new TileData(46));
+    tiles.put(60, new TileData(60));
+    tiles.put(62, new TileData(62));
+    tiles.put(186, new TileData(186));
+    tiles.get(186).opaque = true;
     tiles.put(219, new TileData(219));
     tiles.get(219).opaque = true;
+    tiles.get(219).collideable = true;
+    tiles.put(2, new TileData(2));
   }
   public static TileData getTile(Integer ID){
     return tiles.get(ID);
@@ -53,7 +60,4 @@ public class TileData {
   public boolean isOpaque(){
     return opaque;
   }
-  /*public static BufferedImage getImage(){
-    return imgFile;
-  }*/
 }

@@ -5,23 +5,40 @@ import java.awt.*;
 public class GameMap {
   private final int width, height;
   private Tile tiles[][];
-  public GameMap(int x, int y){
-    width = x;
-    height = y;
-    tiles = new Tile[width][height];
-    for(int i = 0; i < width; i++)
-      for(int j =0; j< height; j++)
-      tiles[i][j] = new Tile(0);
-  }
-  public GameMap(String name){
+  public GameMap(String name, Entity player, EntityManager em){
     try{
       Scanner sc = new Scanner(new File(name));
       width = sc.nextInt();
       height = sc.nextInt();
       tiles = new Tile[width][height];
-      for(int j =0; j< height; j++)
-        for(int i = 0; i < width; i++)
-        tiles[i][j] = new Tile(sc.nextInt());
+      for(int j =0; j< height; j++){
+        for(int i = 0; i < width; i++){
+          int data = sc.nextInt();
+          if(data == 1) data = 219;
+          else if(data == 2 || data==4) data = 46;
+          else if(data == 5) data = 186;
+          else if(data == 6) data = 60;
+          else if(data == 7) data = 62;   
+          tiles[i][j] = new Tile(data);
+          CMoving.setMap(this);
+          if(data == 60){
+            player.addComponent(new CMoving(player, i, j));
+            System.out.println("found it boss");
+          }
+        }
+      }
+      while(sc.hasNext()){
+        int x = sc.nextInt();
+        int y = sc.nextInt();
+        int type = sc.nextInt();
+        if(type <=10){
+          Entity enemy = new Entity();
+          enemy.addComponent(new CResources(enemy));
+          enemy.addComponent(new CMoving(enemy,x,y));
+          enemy.addComponent(new CAI(enemy, type*3));
+          em.addEntity(enemy);
+        }
+      }
     }catch(IOException e){
       throw new RuntimeException(name+": map file missing");
     }
@@ -30,9 +47,9 @@ public class GameMap {
     tiles[pos.x][pos.y].setEntity(e);
   }
   /*public void setEntity(int x, int y, Entity e){
-    setEntity(new Position(x,y),e);
-  }*/
-
+   setEntity(new Position(x,y),e);
+   }*/
+  
   public void draw(Graphics2D g2d, Renderer renderer){
     Position off = renderer.getOffset();
     for(int y = 0; y < height; y++){

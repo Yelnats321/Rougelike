@@ -12,28 +12,38 @@ public class GUI implements KeyListener, Action{
     GAME, INVENTORY, MAIN_MENU;
   }
   private final int WIDTH = 6, HEIGHT = 3;
-  private final String INVENTORY_FILENAME = "inventory.png", INVENTORY_SELECTOR_FILENAME = "inventoryselector.png", INVENTORY_SELECTED_FILENAME = "selected.png";
-  private final BufferedImage INVENTORY_FILE, INVENTORY_SELECTOR_FILE, INVENTORY_SELECTED_FILE;
+  private final String INVENTORY_FILENAME = "inventory.png", INVENTORY_SELECTOR_FILENAME = "inventoryselector.png", INVENTORY_SELECTED_FILENAME = "selected.png", MAIN_MENU_FILENAME = "mainmenu.png";
+  private final BufferedImage INVENTORY_FILE, INVENTORY_SELECTOR_FILE, INVENTORY_SELECTED_FILE, MAIN_MENU_FILE;
   private CountDownLatch waitLatch;
   private Entity player;
+  private EntityManager entityManager;
   private CInventory inv;
   private CResources res;
-  private State state = State.GAME;
+  private State state = State.MAIN_MENU;
   private Renderer renderer;
-  private Position selectedPos, equipedPos1, equipedPos2;
+  private Position selectedPos = new Position(0,0), equipedPos1, equipedPos2;
+  private boolean enterPressed  = false;
   
   public GUI(){
     try{
       INVENTORY_FILE = ImageIO.read(new File(INVENTORY_FILENAME));
       INVENTORY_SELECTOR_FILE = ImageIO.read(new File(INVENTORY_SELECTOR_FILENAME));
       INVENTORY_SELECTED_FILE = ImageIO.read(new File(INVENTORY_SELECTED_FILENAME));
+      MAIN_MENU_FILE = ImageIO.read(new File(MAIN_MENU_FILENAME));
     }catch(IOException e){
       throw new RuntimeException("GUI Files missing");
     }
+    renderer = new Renderer(this);
   }
-  public void setRenderer(Renderer r){
-    renderer = r;
+  public void update(){
+    if(state == State.MAIN_MENU){
+      act();
+    }
+    else{
+      entityManager.update(renderer);
+    }
   }
+  
   //some sort of blocking function that waits until the player makes an input
   public void act(){
     waitLatch = new CountDownLatch(1);
@@ -44,14 +54,11 @@ public class GUI implements KeyListener, Action{
   
   public State getState(){return state;}
   
-  public void setPlayer(Entity p){
-    player = p;
-    inv = (CInventory)p.getComponent(CInventory.class);
-    res = (CResources)p.getComponent(CResources.class);
-  }
   private boolean inBounds(Position d){
     if(state == State.INVENTORY)
       return(d.x >= 0 && d.x < WIDTH && d.y>=0 && d.y< HEIGHT);
+    if(state == State.MAIN_MENU)
+      return (d.y >= 0 && d.y <1 && d.x == 0);
     return false;
   }
   public void move(Direction d){
@@ -60,28 +67,46 @@ public class GUI implements KeyListener, Action{
       renderer.repaint();
     }
   }
-  
+  public void newGame(){
+    entityManager = new EntityManager(this);
+    state = State.GAME;
+      
+    player = entityManager.getPlayer();
+    inv = (CInventory)player.getComponent(CInventory.class);
+    res = (CResources)player.getComponent(CResources.class);
+  }
   public void select(){
-    InventoryItem item = inv.getItem(selectedPos.x+ selectedPos.y*WIDTH);
-    if (item == null) return;
-    if(item.type != InventoryItem.Type.MISC){
-      if(selectedPos.equals(equipedPos1) || selectedPos.equals(equipedPos2)){
-        inv.unequip(item);
-        if(selectedPos.equals(equipedPos1)){
-          equipedPos1 = null;
+    System.out.println("Selected");
+    if(state == State.INVENTORY){
+      InventoryItem item = inv.getItem(selectedPos.x+ selectedPos.y*WIDTH);
+      if (item == null) return;
+      if(item.type != InventoryItem.Type.MISC){
+        if(selectedPos.equals(equipedPos1) || selectedPos.equals(equipedPos2)){
+          inv.unequip(item);
+          if(selectedPos.equals(equipedPos1)){
+            equipedPos1 = null;
+          }
+          else{
+            equipedPos2 = null;
+          }
         }
         else{
-          equipedPos2 = null;
+          inv.equip(item);
+          if(item.type == InventoryItem.Type.WEAPON){
+            equipedPos1 = (Position)selectedPos.clone();
+          }
+          else 
+            equipedPos2 = (Position)selectedPos.clone();
         }
+        renderer.repaint();
+        waitLatch.countDown();
       }
-      else{
-        inv.equip(item);
-        if(item.type == InventoryItem.Type.WEAPON)
-          equipedPos1 = (Position)selectedPos.clone();
-        else 
-          equipedPos2 = (Position)selectedPos.clone();
+    }
+    else if(state == State.MAIN_MENU){
+      if(selectedPos.y ==0){
+        newGame();
+        waitLatch.countDown();
       }
-      renderer.repaint();
     }
   }
   public void openInventory(){
@@ -116,42 +141,51 @@ public class GUI implements KeyListener, Action{
       g2d.drawString(res.getAttack()+"", 109+20, 109+20+4+16*3);
     }
     else if(state == State.MAIN_MENU){
+      g2d.drawImage(MAIN_MENU_FILE, 0, 0, null);
     }
   }
   
   public void keyTyped(KeyEvent e){}
   
-  public void keyReleased(KeyEvent e){}
-  
+  public void keyReleased(KeyEvent e){
+    if(e.getKeyCode() == KeyEvent.VK_ENTER){
+      enterPressed=false;
+      System.out.println("reeased");
+    }
+  }
+  public void died(){
+    state = State.MAIN_MENU;
+    renderer.repaint();
+  }
   public void keyPressed(KeyEvent e){
     
-    CMoving mov = (CMoving)player.getComponent(CMoving.class);
     if(waitLatch.getCount() == 0) return;
     switch(state){
       case GAME:
+        CMoving mov = (CMoving)player.getComponent(CMoving.class);
         switch(e.getKeyCode()){
-        case KeyEvent.VK_W:
-          if(mov.move(Direction.UP) || mov.attack(Direction.UP))
-          waitLatch.countDown();
-          break;
-        case KeyEvent.VK_A:
-          if(mov.move(Direction.LEFT) || mov.attack(Direction.LEFT))
-          waitLatch.countDown();
-          break;
-        case KeyEvent.VK_S:
-          if(mov.move(Direction.DOWN) || mov.attack(Direction.DOWN))
-          waitLatch.countDown();
-          break;
-        case KeyEvent.VK_D:
-          if(mov.move(Direction.RIGHT) || mov.attack(Direction.RIGHT))
-          waitLatch.countDown();
-          break;
-        case KeyEvent.VK_I:
-          openInventory();
-          break;
-        default:
-          System.out.println("Not sure about this input: "+e.getKeyChar());       
-      }
+          case KeyEvent.VK_W:
+            if(mov.move(Direction.UP) || mov.attack(Direction.UP))
+            waitLatch.countDown();
+            break;
+          case KeyEvent.VK_A:
+            if(mov.move(Direction.LEFT) || mov.attack(Direction.LEFT))
+            waitLatch.countDown();
+            break;
+          case KeyEvent.VK_S:
+            if(mov.move(Direction.DOWN) || mov.attack(Direction.DOWN))
+            waitLatch.countDown();
+            break;
+          case KeyEvent.VK_D:
+            if(mov.move(Direction.RIGHT) || mov.attack(Direction.RIGHT))
+            waitLatch.countDown();
+            break;
+          case KeyEvent.VK_I:
+            openInventory();
+            break;
+          default:
+            System.out.println("Not sure about this input: "+e.getKeyChar());       
+        }
         break;
       case INVENTORY:
         switch(Character.toUpperCase(e.getKeyChar())){
@@ -167,13 +201,33 @@ public class GUI implements KeyListener, Action{
         case KeyEvent.VK_D:
           move(Direction.RIGHT);
           break;
-        case KeyEvent.VK_ENTER:
-          select();
+        case KeyEvent.VK_ENTER:{
+          if(!enterPressed){
+            System.out.println("pressed");
+            enterPressed = true;
+            select();
+          }
+
           break;
+        }
         case KeyEvent.VK_I:
         case KeyEvent.VK_ESCAPE:
           closeInventory();
           break;
+      }
+        break;
+      case MAIN_MENU:
+        switch(Character.toUpperCase(e.getKeyChar())){
+        case KeyEvent.VK_W:
+          move(Direction.UP);
+          break;
+        case KeyEvent.VK_S:
+          move(Direction.DOWN);
+          break;
+        case KeyEvent.VK_ENTER:
+          select();
+          break;
+          
       }
     }
     //we should send down proper inputs to the entity manager, such as moving or using a spell or item

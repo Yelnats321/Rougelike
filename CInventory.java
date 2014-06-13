@@ -27,6 +27,7 @@ public class CInventory extends CBase{
     return false;
   }
   public void equip(InventoryItem item){
+   // System.out.println("equiping "+item.name);
     CResources res = (CResources)owner.getComponent(CResources.class);
     if(item.type == InventoryItem.Type.MISC) return;
     if(item.type == InventoryItem.Type.WEAPON){
@@ -43,6 +44,7 @@ public class CInventory extends CBase{
     }
   }
   public void unequip(InventoryItem item){
+   // System.out.println("unequiping "+item.name);
     CResources res = (CResources)owner.getComponent(CResources.class);
     if(item.type == InventoryItem.Type.MISC) return;
     if(item.type == InventoryItem.Type.WEAPON){

@@ -9,7 +9,7 @@ class CAI extends CBase implements Action{
     entityManager = e;
   }
   public void act(){
-    if(entityManager == null) throw new RuntimeException("Entity manager not set for AI");
+    if(!entityManager.getPlayer().live)return;
     if(owner.getComponent(CMoving.class) == null) return;
     final CMoving moving = (CMoving)owner.getComponent(CMoving.class);
     final CMoving playerMoving = (CMoving)entityManager.getPlayer().getComponent(CMoving.class);

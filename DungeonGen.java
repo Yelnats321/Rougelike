@@ -28,7 +28,7 @@ public class DungeonGen{
   final private static int tileDoor = 5;
   final private static int tileUpStairs = 6;
   final private static int tileDownStairs = 7;
-
+  
   
   //misc. messages to print
   private static String msgXSize = "X size of dungeon: \t";
@@ -219,7 +219,10 @@ public class DungeonGen{
   private static int getCell(int x, int y) {
     return dungeon_map[x + xsize * y];
   }
-
+  private static int getCell(Position p){
+    return dungeon_map[p.x + xsize*p.y];
+  }
+  
   private static int getRand(int min, int max) {
 // i readded the oldseed thing just so we dont get repeating seeds if we generate 2 levels simultanously(we shouldnt but its a just in case ting)
     Date now = new Date();
@@ -407,6 +410,7 @@ public class DungeonGen{
   }
   public static void writeDungeon(int level)
   {
+    List<Position> posThing = new ArrayList<Position>();
     FileWriter fWriter = null;
     BufferedWriter writer = null;
     try {
@@ -418,10 +422,33 @@ public class DungeonGen{
         for (int l = 0; l < xsize; l++){
           if(h == 0 || h == ysize-1 || l == 0 || l == xsize-1){
           }
-          else writer.write(getCell(l, h) + " ");
+          else {
+            writer.write(getCell(l, h) + " ");
+            if(getRand(0, 100) <5){
+              posThing.add(new Position(l,h));
+            }
           }
+        }
         //  System.out.print(getCell(l,h) +" ");
         writer.newLine();
+      }
+      
+      for(Position p : posThing){
+        if(getCell(p) == tileDirtFloor ||
+           getCell(p) == tileCorridor ||
+           getCell(p) == tileDoor){
+          //enemy
+          //subb one because we aren't writing the walls around
+          if(getRand(0, 1) == 0){
+            writer.write(p.x-1 + " " + (p.y-1) +  " " +getRand(0,10));
+            writer.newLine();
+          }
+          //item
+          else{
+            writer.write(p.x-1 + " " +( p.y-1) + " " +  getRand(10,20));
+            writer.newLine();
+          }
+        }
       }
       writer.close();
     }catch (Exception e) {
@@ -441,9 +468,9 @@ public class DungeonGen{
           case tileDirtFloor:
             System.out.print(".");
             break;
-          /*case tileStoneWall:
-            System.out.print("O");
-            break;*/
+            /*case tileStoneWall:
+             System.out.print("O");
+             break;*/
           case tileCorridor:
             System.out.print("#");
             break;
@@ -456,31 +483,12 @@ public class DungeonGen{
           case tileDownStairs:
             System.out.print(">");
             break;
-          /*case tileChest:
-            System.out.print("*");
-            break;*/
+            /*case tileChest:
+             System.out.print("*");
+             break;*/
         };
       }
       if (xsize <= 80) System.out.println();
     }
-  }
-  public static void main(String[] args){
-    //initial stuff used in making the map
-    x = 102; y = 102; dungeon_objects = 150;
-    //convert a string to a int, if there's more then one arg
-    if (args.length >= 1)
-      dungeon_objects = Integer.parseInt(args[0]);
-    if (args.length >= 2)
-      x = Integer.parseInt(args[1]);
-    
-    if (args.length >= 3)
-      y = Integer.parseInt(args[2]);
-    DungeonGen generator = new DungeonGen();
-    for(level = 0; level <= 5; level++)
-    {
-    generator.createDungeon(x, y, dungeon_objects, level);
-    }
-    //generator.showDungeon();
-    // generator.writeDungeon(level);
   }
 }

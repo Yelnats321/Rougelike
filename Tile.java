@@ -18,7 +18,7 @@ public class Tile {
       tileType.draw(g2d,offset, x, y);
     }
     else
-      TileData.getTile(219).draw(g2d,offset, x,y);
+      TileData.getTile(0).draw(g2d,offset, x,y);
   }
   public boolean canWalk(){
     //add something if there is an entity here too

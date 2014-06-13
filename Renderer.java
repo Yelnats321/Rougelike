@@ -6,12 +6,17 @@ public class Renderer extends JPanel/* implements ActionListener*/{
   private JFrame mainFrame;
   private final int WINDOW_X = 640, WINDOW_Y = 480;
   private Position offset = new Position(0,0);
-  private EntityManager manager;
+  private static GameMap map;
+  private static Entity player;
   private GUI gui;
   
-  
-  public Renderer(EntityManager m, GUI g){      
-    manager = m;
+  public static void setMap(GameMap m){
+    map = m;
+  }
+  public static void setPlayer(Entity p){
+    player = p;
+  }
+  public Renderer(GUI g){      
     gui = g;
     setDoubleBuffered(true);
     this.setPreferredSize(new Dimension(WINDOW_X,WINDOW_Y));
@@ -25,8 +30,8 @@ public class Renderer extends JPanel/* implements ActionListener*/{
   }
   public void updateOffset(){
     final int tilesPerX = WINDOW_X/TileData.TILE_X, tilesPerY = WINDOW_Y/TileData.TILE_Y;
-    final int width = manager.getMap().getWidth(), height = manager.getMap().getHeight();
-    final int posX = ((CMoving)manager.getPlayer().getComponent(CMoving.class)).getX(), posY = ((CMoving)manager.getPlayer().getComponent(CMoving.class)).getY();
+    final int width = map.getWidth(), height = map.getHeight();
+    final int posX = ((CMoving)player.getComponent(CMoving.class)).getX(), posY = ((CMoving)player.getComponent(CMoving.class)).getY();
     if(width <=tilesPerX)
       offset.x = WINDOW_X/2- width*TileData.TILE_X/2; 
     else{
@@ -53,38 +58,20 @@ public class Renderer extends JPanel/* implements ActionListener*/{
   
   @Override
   public void paintComponent(Graphics g){
-    System.out.println("repainted");
+    //System.out.println("repainted");
     super.paintComponent(g);
     Graphics2D g2d = (Graphics2D) g;
-    manager.getMap().draw(g2d, this);
+    if(gui.getState() != GUI.State.MAIN_MENU)
+      map.draw(g2d, this);
     gui.draw(g2d);
   }
   
   public static void main(String [] args){
-    EntityManager manager = new EntityManager();
-    Entity.setManager(manager);
-    manager.changeMap("map.txt");
-    manager.getPlayer().addComponent(new CMoving(manager.getPlayer(),6 ,5));
-    manager.getPlayer().addComponent(new CResources(manager.getPlayer()));
-    manager.getPlayer().addComponent(new CLOS(manager.getPlayer(), 6));
-    manager.getPlayer().addComponent(new CInventory(manager.getPlayer()));
-    CAI.setManager(manager);
     GUI gui = new GUI();
-    Renderer rend = new Renderer(manager, gui);
-    gui.setRenderer(rend);
-    gui.setPlayer(manager.getPlayer());
-    manager.getPlayer().addComponent(new CActor(manager.getPlayer(), 10, gui));
-    
-    Entity enemy1 = new Entity();
-    enemy1.addComponent(new CMoving(enemy1, 6,6));
-    enemy1.addComponent(new CAI(enemy1, 9));
-    enemy1.addComponent(new CResources(enemy1));
-    manager.addEntity(enemy1);
-    
-    
+
     while(true){
-      manager.update(rend);
-      System.out.println("thing happened");
+      gui.update();
+     // System.out.println("thing happened");
     }
   }
 }

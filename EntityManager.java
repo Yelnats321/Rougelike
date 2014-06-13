@@ -5,12 +5,24 @@ public class EntityManager{
   private Entity player;
   private GameMap map;
   private List<Entity> entities;
-  public EntityManager(){
-    player = new Entity();
+  private GUI gui;
+  public EntityManager(GUI gui){
+    this.gui = gui;
     entities = new LinkedList<Entity>();
+    Entity.setManager(this);
+    CAI.setManager(this);
+    player = new Entity();
+    DungeonGen.createDungeon(30,30,15,1);
+    DungeonGen.writeDungeon(1);
+    changeMap("1.txt");
+    player.addComponent(new CResources(player));
+    player.addComponent(new CInventory(player));
+    player.addComponent(new CActor(player, 10, gui));
+    player.addComponent(new CLOS(player, 6));
+    Renderer.setPlayer(player);
   }
+
   public void update(Renderer renderer){
-    if(player == null) throw new RuntimeException("No player set for entity manager");
     //this should do the player's action, then whatever actions any other entity has to do based on speed and such
     LinkedList<CActor> moveList = generateList();
     for(CActor actor: moveList){
@@ -26,6 +38,11 @@ public class EntityManager{
         renderer.repaint();
       }
       actor.act();
+      if(!player.live){
+        System.out.println("died");
+        gui.died();
+        return;
+      }
     }
   }
   public void addEntity(Entity e){
@@ -64,9 +81,9 @@ public class EntityManager{
     }
   }
   public void changeMap(String name){
-    map = new GameMap(name);
-    CMoving.setMap(map);
+    map = new GameMap(name, player, this);
     CLOS.setMap(map);
+    Renderer.setMap(map);
   }
   
   public List<Entity> getEntities(){return entities;}
