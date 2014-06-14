@@ -6,7 +6,7 @@ import java.awt.Graphics2D;
 
 //Tiles are base types read from a file
 public class TileData {
-  private final int ID;
+  public final int ID;
   private  boolean collideable = false, opaque = false;
   
   private static Map<Integer, TileData> tiles = new HashMap<Integer, TileData>();

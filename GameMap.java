@@ -4,6 +4,7 @@ import java.awt.*;
 
 public class GameMap {
   private final int width, height;
+  public final static int STAIRSUP= 60, STAIRSDOWN=62, WALL = 219, FLOOR = 46, DOOR=186;
   private Tile tiles[][];
   public GameMap(String name, Entity player, EntityManager em){
     try{
@@ -14,15 +15,14 @@ public class GameMap {
       for(int j =0; j< height; j++){
         for(int i = 0; i < width; i++){
           int data = sc.nextInt();
-          if(data == 1) data = 219;
-          else if(data == 2 || data==4) data = 46;
-          else if(data == 5) data = 186;
-          else if(data == 6) data = 60;
-          else if(data == 7) data = 62;   
+          if(data == 1) data = WALL;
+          else if(data == 2 || data==4) data = FLOOR;
+          else if(data == 5) data = DOOR;
+          else if(data == 6) data = STAIRSUP;
+          else if(data == 7) data = STAIRSDOWN;   
           tiles[i][j] = new Tile(data);
-          CMoving.setMap(this);
-          if(data == 60){
-            player.addComponent(new CMoving(player, i, j));
+          if(data == STAIRSUP){
+            ((CMoving)player.getComponent(CMoving.class)).setPos(new Position(i,j));
             System.out.println("found it boss");
           }
         }
@@ -41,6 +41,32 @@ public class GameMap {
       }
     }catch(IOException e){
       throw new RuntimeException(name+": map file missing");
+    }
+  }
+  public void writeMap(String name){
+    FileWriter fWriter = null;
+    BufferedWriter writer = null;
+    try {
+      fWriter = new FileWriter(name);
+      writer = new BufferedWriter(fWriter);
+      writer.write(width  + " " + height);
+      writer.newLine();
+      for (int h = 0; h < height; h++){
+        for (int l = 0; l < width; l++){
+          writer.write(get (h,l).tileType.ID + " ");
+        }
+      }
+      for(CActor actor : CActor.getActors()){
+        CMoving mov = (CMoving) actor.owner.getComponent(CMoving.class);
+        if(mov == null) continue;
+        writer.write(mov.getX() + " " +mov.getY() + " " + actor.getSpeed());
+      }
+      //  System.out.print(getCell(l,h) +" ");
+      writer.newLine();
+      
+      
+      writer.close();
+    }catch (Exception e) {
     }
   }
   public void setEntity(Position pos, Entity e){
@@ -71,8 +97,8 @@ public class GameMap {
       }
     }
   }
-  public Tile get(int x, int y){return get(new Position(x,y));}
-  public Tile get(Position pos){return tiles[pos.x][pos.y];}
+  public Tile get(int x, int y){return tiles[x][y];}
+  public Tile get(Position pos){return get(pos.x, pos.y);}
   public int getWidth(){return width;}
   public int getHeight(){return height;}
 }

@@ -40,7 +40,7 @@ public class GUI implements KeyListener, Action{
       act();
     }
     else{
-      entityManager.update(renderer);
+      entityManager.update();
     }
   }
   
@@ -68,12 +68,15 @@ public class GUI implements KeyListener, Action{
     }
   }
   public void newGame(){
+    equipedPos1 = null;
+    equipedPos2 =null;
     entityManager = new EntityManager(this);
     state = State.GAME;
-      
+    
     player = entityManager.getPlayer();
     inv = (CInventory)player.getComponent(CInventory.class);
     res = (CResources)player.getComponent(CResources.class);
+    renderer.repaint();
   }
   public void select(){
     System.out.println("Selected");
@@ -180,11 +183,23 @@ public class GUI implements KeyListener, Action{
             if(mov.move(Direction.RIGHT) || mov.attack(Direction.RIGHT))
             waitLatch.countDown();
             break;
+          case KeyEvent.VK_PERIOD:
+            if(e.isShiftDown()){
+            if(mov.move(Direction.BELOW))
+              waitLatch.countDown();
+          }
+            break;
+          case KeyEvent.VK_COMMA:
+            if(e.isShiftDown()){
+            if(mov.move(Direction.ABOVE))
+              waitLatch.countDown();
+          }
+            break;
           case KeyEvent.VK_I:
             openInventory();
             break;
           default:
-            System.out.println("Not sure about this input: "+e.getKeyChar());       
+            System.out.println("Not sure about this input: "+e.getKeyChar() + " " +e.getKeyCode());       
         }
         break;
       case INVENTORY:
@@ -207,7 +222,7 @@ public class GUI implements KeyListener, Action{
             enterPressed = true;
             select();
           }
-
+          
           break;
         }
         case KeyEvent.VK_I:

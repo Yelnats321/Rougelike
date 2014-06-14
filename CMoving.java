@@ -6,16 +6,17 @@ class CMoving extends CBase{
   private Position pos;
   private boolean collideable;
   private static GameMap map;
+  private static EntityManager entityManager;
 
   public CMoving(Entity o, int x, int y){
     this(o, x, y, true);
   }
   public CMoving(Entity o,int x, int y, boolean col){
     super(o);
-    if(map == null) throw new RuntimeException ("Map not set for CMoving");
     pos = new Position(x, y);
     collideable = col;
-    map.setEntity(pos, owner);
+    if(map!=null)
+      map.setEntity(pos, owner);
   }
   @Override
   public void destroy(){
@@ -24,6 +25,10 @@ class CMoving extends CBase{
   public static void setMap(GameMap m){
     map = m;
   }
+  public static void setManager(EntityManager e){
+    entityManager = e;
+  }
+
   public boolean checkMove(Direction d){
     if(!map.inBounds(pos.add(d.offset))) return false;
     return(map.get(pos.add(d.offset)).canWalk());
@@ -33,6 +38,14 @@ class CMoving extends CBase{
     return(!map.get(pos.add(d.offset)).tileType.isCollideable() && map.get(pos.add(d.offset)).getEntity() != null && map.get(pos.add(d.offset)).getEntity().getComponent(CResources.class) != null);
   }
   public boolean move(Direction d){
+    if(d == Direction.ABOVE || d == Direction.BELOW){
+      if(d==Direction.ABOVE && map.get(pos.x,pos.y).tileType.ID == GameMap.STAIRSUP){
+        entityManager.goDown();
+      }
+      else if(d==Direction.BELOW && map.get(pos.x,pos.y).tileType.ID == GameMap.STAIRSDOWN){
+        entityManager.goUp();
+      }
+    }
     if(checkMove(d)){
       map.setEntity(pos, null);
       pos = pos.add(d.offset);

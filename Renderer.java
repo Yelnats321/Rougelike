@@ -18,6 +18,7 @@ public class Renderer extends JPanel/* implements ActionListener*/{
   }
   public Renderer(GUI g){      
     gui = g;
+    EntityManager.setRenderer(this);
     setDoubleBuffered(true);
     this.setPreferredSize(new Dimension(WINDOW_X,WINDOW_Y));
     mainFrame = new JFrame("Roguelike");

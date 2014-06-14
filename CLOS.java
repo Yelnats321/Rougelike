@@ -6,7 +6,6 @@ class CLOS extends CBase{
   public CLOS(Entity o, int r){
     super(o);
     radius = r;
-    update();
   }
   public static void setMap(GameMap m){
     map = m;

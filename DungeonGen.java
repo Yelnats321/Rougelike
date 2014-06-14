@@ -408,7 +408,7 @@ public class DungeonGen{
     }
     return true;
   }
-  public static void writeDungeon(int level)
+  private static void writeDungeon(int level)
   {
     List<Position> posThing = new ArrayList<Position>();
     FileWriter fWriter = null;
