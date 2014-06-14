@@ -82,7 +82,8 @@ class CLOS extends CBase{
       if(map.get(x, y).isOpaque()){
         if(x == x2 && y == y2)
           return true;
-        return false;
+        if(!(x==start.x && y==start.y))
+          return false;
       }
       numerator += shortest ;
       if (!(numerator<longest)) {
