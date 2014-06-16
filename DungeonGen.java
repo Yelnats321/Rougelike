@@ -441,7 +441,7 @@ public class DungeonGen{
       }
       writer.close();
     }catch (Exception e) {
-      System.out.println(e);
+      e.printStackTrace();
     }
   }
 }

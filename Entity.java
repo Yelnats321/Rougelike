@@ -89,8 +89,8 @@ class Entity{
       tries++;
     }while(tries < 100 &&(enemys.get(itr).level > level + spread|| enemys.get(itr).level < level-spread));
     if(tries == 100){
-      for(itr = 0; itr < enemys.size(); itr++){
-        if(enemys.get(itr).level <= level && (itr+1 == enemys.size() || enemys.get(itr+1).level > level))
+      for(itr = 1; itr <= enemys.size(); itr++){
+        if(enemys.get(itr).level <= level && (itr == enemys.size() || enemys.get(itr+1).level > level))
           break;
       }
     }
