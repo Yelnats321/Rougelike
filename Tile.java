@@ -40,6 +40,14 @@ public class Tile {
   }
   public int itemAmount(){return items.size();}
   public void addItem(String quality){
+    if(quality.equals("Health")){
+      items.add(InventoryItem.get("Health Potion"));
+      return;
+    }
+    else if (quality.equals("Amulet")){
+      items.add(InventoryItem.get("Amulet of Yendor"));
+      return;
+    }
     int rand = RandomNumber.getRand(0, InventoryItem.Weapons.vals.length+3);
     //weapons
     if(rand < InventoryItem.Weapons.vals.length){
@@ -70,4 +78,5 @@ public class Tile {
   public void resetVisible(){
     visible = false;
   }
+  public boolean isDiscovered(){return discovered;}
 }

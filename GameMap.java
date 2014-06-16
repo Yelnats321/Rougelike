@@ -24,17 +24,28 @@ public class GameMap {
           tiles[i][j] = new Tile(data);
         }
       }
+      int entrySize = sc.nextInt();
+      for(int itr = 0; itr < entrySize;  itr++){
+        int x = sc.nextInt();
+        int y = sc.nextInt();
+        String info = sc.nextLine();
+        info = info.substring(1);
+        if(Character.isDigit(info.charAt(0))){
+          String numbs[] = info.split("\\s+");
+          if(Integer.parseInt(numbs[0]) == 0){
+            ((CMoving)player.getComponent(CMoving.class)).setPos(new Position(x,y));
+          }
+          else
+            em.addEntity(Entity.createEnemy(Integer.parseInt(numbs[0]), Integer.parseInt(numbs[1]),x,y));
+        }
+        else{
+          get(x,y).addItem(InventoryItem.get(info));
+        }
+      }
       while(sc.hasNext()){
         int x = sc.nextInt();
         int y = sc.nextInt();
-        int type = sc.nextInt();
-        int currHp = sc.nextInt();
-        if(type == 0){
-          ((CMoving)player.getComponent(CMoving.class)).setPos(new Position(x,y));
-        }
-        else if(type <=Entity.enemyAmount()){
-          em.addEntity(Entity.createEnemy(type, currHp,x,y));
-        }
+        get(x,y).discover();
       }
       sc.close();
     }catch(IOException e){
@@ -46,22 +57,39 @@ public class GameMap {
       BufferedWriter writer = new BufferedWriter( new FileWriter(name));
       writer.write(width  + " " + height);
       writer.newLine();
+      java.util.List<String> items = new LinkedList<String>();
       for (int h = 0; h < height; h++){
         for (int l = 0; l < width; l++){
           writer.write(get(l,h).tileType.ID + " ");
+          if(get(l,h).itemAmount() != 0){
+            for(int itr = 0; itr < get(l,h).itemAmount(); itr++)
+            items.add(l +" " + h+" " +get(l,h).getItems().get(itr).name);
+          }
         }
         writer.newLine();
       }
+      writer.write(CActor.getActors().size()+items.size()+"");
+      writer.newLine();
       for(CActor actor : CActor.getActors()){
         CMoving mov = (CMoving) actor.owner.getComponent(CMoving.class);
         CResources heichp = (CResources) actor.owner.getComponent(CResources.class);
-        if(mov == null) continue;
         writer.write(mov.getX() + " " +mov.getY() + " " + actor.owner.ID + " "+ heichp.getHP());
+        writer.newLine();
+      }
+      for(String it: items){
+        writer.write(it);
         writer.newLine();
       }
       //  System.out.print(getCell(l,h) +" ");
       writer.newLine();
-      
+      for (int h = 0; h < height; h++){
+        for (int l = 0; l < width; l++){
+          if(get(l,h).isDiscovered()){
+            writer.write(l + " " + h);
+            writer.newLine();
+          }
+        }
+      }
       
       writer.close();
     }catch (Exception e) {

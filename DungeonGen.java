@@ -12,6 +12,7 @@ public class DungeonGen{
   private static int chanceRoom = 75; 
   //our map
   private static int[] dungeon_map = {};
+  private static boolean spawnedLich = false;
  
   
   //a list over tile types we're using
@@ -27,7 +28,7 @@ public class DungeonGen{
  
   
   static void createDungeon(int inx, int iny, int inobj, int level, boolean descended) {
-    
+    if(new File(level+".txt").exists()) return;
     if (inobj < 1) objects = 10;
     else objects = inobj;
     
@@ -375,8 +376,7 @@ public class DungeonGen{
     }
     return true;
   }
-  private static void writeDungeon(int level, boolean descended)
-  {
+  private static void writeDungeon(int level, boolean descended){
     List<Position> posThing = new ArrayList<Position>();
     Position entrance = new Position(0,0);
     FileWriter fWriter = null;
@@ -399,35 +399,49 @@ public class DungeonGen{
             }
             else if(getCell(l,h) == tileDownStairs)
               entrance = new Position(l,h);
-            if(RandomNumber.getRand(0, 100) <3+level/5){
-              posThing.add(new Position(l,h));
+            
+            Position p = new Position(l,h);
+            if(getCell(p) == tileDirtFloor ||
+               getCell(p) == tileCorridor ||
+               getCell(p) == tileDoor){
+              if(RandomNumber.getRand(0, 100) <6+level/5){
+                posThing.add(p);
+              }
             }
           }
         }
         //  System.out.print(getCell(l,h) +" ");
         writer.newLine();
       }
+      writer.write (posThing.size()+1+"");
+      writer.newLine();
       writer.write(entrance.x-1 + " " +(entrance.y-1)+ " " + 0 +" " + 0);
       writer.newLine();
+      System.out.println("started placing items");
       for(Position p : posThing){
-        if(getCell(p) == tileDirtFloor ||
-           getCell(p) == tileCorridor ||
-           getCell(p) == tileDoor){
-          //enemy
-          //subb one because we aren't writing the walls around
-          if(RandomNumber.getRand(1, 5) > 1){
-            writer.write(p.x-1 + " " + (p.y-1) +  " " +Entity.pickEnemy(level) + " " + 0);
-            writer.newLine();
+        //enemy
+        //subb one because we aren't writing the walls around
+        if(RandomNumber.getRand(1, 5) > 1){
+          int enemy = Entity.pickEnemy(level);
+          if(level == 30 && !spawnedLich)
+            enemy = Entity.enemyAmount()-1;
+          if(enemy == Entity.enemyAmount()-1){
+            if(!spawnedLich)
+              spawnedLich = true;
+            else enemy--;
           }
-          //item
-          else{
-            /*writer.write(p.x-1 + " " +( p.y-1) + " " +  getRand(10,20));
-            writer.newLine();*/
-          }
+          writer.write(p.x-1 + " " + (p.y-1) +  " " +enemy + " " + 0);
+          writer.newLine();
+        }
+        //item
+        else{
+          writer.write(p.x-1 + " " +( p.y-1) + " " +  InventoryItem.pickItem(level));
+          writer.newLine();          
         }
       }
       writer.close();
     }catch (Exception e) {
+      System.out.println(e);
     }
   }
 }

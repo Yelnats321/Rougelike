@@ -9,6 +9,8 @@ public class CInventory extends CBase{
     super(o);
     addItem(InventoryItem.get("Bronze Dirk"));
     addItem(InventoryItem.get("Bronze Chestplate"));
+    addItem(InventoryItem.get("Health Potion"));
+    addItem(InventoryItem.get("Health Potion"));
   }
   
   public boolean addItem(InventoryItem item){

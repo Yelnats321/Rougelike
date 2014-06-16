@@ -76,6 +76,7 @@ public class GUI implements KeyListener, Action{
   private void newGame(){
     equipedPos1 = null;
     equipedPos2 =null;
+    GameMap.clearMaps();
     entityManager = new EntityManager(this);
     state = State.GAME;
     
@@ -109,6 +110,13 @@ public class GUI implements KeyListener, Action{
         }
         renderer.repaint();
         waitLatch.countDown();
+      }
+      else{
+        if(res.quaff(item)){
+          inv.removeItem(selectedPos.x+ selectedPos.y*WIDTH);
+          renderer.repaint();
+          waitLatch.countDown();
+        }
       }
     }
     else if(state == State.MAIN_MENU){
@@ -205,6 +213,7 @@ public class GUI implements KeyListener, Action{
     }
   }
   public void died(){
+    GameMap.clearMaps();
     state = State.MAIN_MENU;
     renderer.repaint();
   }

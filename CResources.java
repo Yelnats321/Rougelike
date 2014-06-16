@@ -5,7 +5,15 @@ class CResources extends CBase{
   private String drops = "";
   private static int expTable[] = {0,10, 20, 35, 50, 70, 100, 140, 200, 300, 450, 600, 800, 1000, 1300, 1700, 2200, 2800, 3500};
   public int getExpDrop(){
+    if(level >= expTable.length) return(expTable[expTable.length-1]/(expTable.length/3+1));
     return expTable[level]/(level/3+1);
+  }
+  public boolean quaff(InventoryItem i){
+    if(i.name == "Amulet of Yendor")
+      System.out.println("You win the game!");
+    if(currHP == maxHP) return false;
+    currHP = Math.min(maxHP, currHP+i.modifier);
+    return true;
   }
   public void equipArmor(InventoryItem i){
   //  if(i == null) return;
@@ -37,9 +45,13 @@ class CResources extends CBase{
     }
   }
   public void checkLevel(){
-    if(xp >= expTable[level]){
-      xp-= expTable[level];
+    int tempLevel = level;
+    if(level >= expTable.length)
+      tempLevel = expTable.length-1;
+    if(xp >= expTable[tempLevel]){
+      xp-= expTable[tempLevel];
       level++;
+      System.out.println("Welcome to level "+level);
       baseDefense += level/3+1;
       currDefense += level/3+1;
       baseAttack += level/3+1;
@@ -90,7 +102,7 @@ class CResources extends CBase{
     currDefense = baseDefense;
     currAttack = baseAttack;
     currSpeed = baseSpeed;
-    currHP = maxHP;
+    currHP = HP;
     if(dr != null)
       drops = dr;
   }

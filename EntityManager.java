@@ -111,11 +111,6 @@ public class EntityManager{
   }
   public void goDown(){
     map.writeMap(level+".txt");
-    Iterator i = entities.iterator();
-    while(i.hasNext()){
-      i.next();
-      i.remove();
-    } 
     level++;
     changeMap(level+".txt",true);
     System.out.println("Descended the stairs to level "+level);
@@ -124,11 +119,6 @@ public class EntityManager{
     if(level == 1)
       return false;
     map.writeMap(level+".txt");
-    Iterator i = entities.iterator();
-    while(i.hasNext()){
-      i.next();
-      i.remove();
-    } 
     level--;
     changeMap(level+".txt",false);
     System.out.println("Ascended the stairs to level "+level);

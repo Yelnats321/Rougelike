@@ -41,6 +41,16 @@ public class InventoryItem{
   private static final BufferedImage FILE;
   private static Map<String, InventoryItem> items = new HashMap<String, InventoryItem>();
   
+  private InventoryItem(String name, int mod){
+    this.name = name;
+    weight = 5;
+    modifier = mod;
+    type = Type.MISC;
+    speedMod = 0;
+    quality = null;
+    wep = null;
+  }
+  
   private InventoryItem(Quality q, Weapons wep){
     this.wep = wep;
     quality = q;
@@ -67,9 +77,12 @@ public class InventoryItem{
       g2d.drawImage(FILE, x,y,x+IMG_SIZE,y+IMG_SIZE,
                     wep.ordinal()*IMG_SIZE,quality.ordinal()*IMG_SIZE,(wep.ordinal()+1)*IMG_SIZE,(quality.ordinal()+1)*IMG_SIZE, null);
     }
-    else 
+    else if(type == Type.ARMOR)
       g2d.drawImage(FILE, x,y,x+IMG_SIZE,y+IMG_SIZE,
                     6*IMG_SIZE,quality.ordinal()*IMG_SIZE,7*IMG_SIZE, (quality.ordinal()+1)*IMG_SIZE, null);
+    else
+      g2d.drawImage(FILE,x,y,x+IMG_SIZE, y+IMG_SIZE,
+                    7*IMG_SIZE,0,8*IMG_SIZE,IMG_SIZE,null);
   }
   static{
     try{
@@ -85,5 +98,18 @@ public class InventoryItem{
       items.put(Quality.vals[t].name() + " Chestplate", 
                 new InventoryItem(Quality.vals[t] ));
     }
+    items.put("Health Potion", new InventoryItem("Health Potion", 5));
+    items.put("Amulet of Yendor", new InventoryItem("Amulet of Yendor",100));
+  }
+  public static String pickItem(int level){
+    level = RandomNumber.getNormalRand(0,6, level/5,1);
+    int item = RandomNumber.getRand(0,Weapons.vals.length+6);
+    if(item < InventoryItem.Weapons.vals.length){
+      return Quality.vals[level]+ " "+Weapons.vals[item];
+    }
+    else if(item >= InventoryItem.Weapons.vals.length && item <InventoryItem.Weapons.vals.length+3)
+      return Quality.vals[level] + " Chestplate";
+    else
+      return "Health Potion";
   }
 }
