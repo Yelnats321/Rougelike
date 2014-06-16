@@ -8,7 +8,7 @@ public class InventoryItem{
   public enum Type{
     MISC, ARMOR, WEAPON;
   }
-  private enum Quality{
+  public enum Quality{
     Bronze(new Color(205,127,50)), Iron(new Color(102,102,102)), Steel(new Color(204,204,204)), Black(new Color(230,230,230)), Mithril(new Color(130, 130, 146)), Adamant(new Color(102,204,0));
     public final Color color;
     public final float mod;
@@ -19,10 +19,10 @@ public class InventoryItem{
     }
   }
   
-  private enum Weapons{
+  public enum Weapons{
     Dirk(1.3f, 0.95f), Dagger(1f, 1.3f), Longsword(1.4f, 1.1f), Scimitar(1.3f, 1.1f), Warhammer(1.6f, 0.7f), Battleaxe(1.35f, 0.8f);
     private final float damage, speedMod;
-    private final static Weapons[] vals = values();
+    public final static Weapons[] vals = values();
     Weapons(float m, float sm){
       damage = m;
       speedMod =sm;

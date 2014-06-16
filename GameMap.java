@@ -7,6 +7,7 @@ public class GameMap {
   public final static int STAIRSUP= 60, STAIRSDOWN=62, WALL = 219, FLOOR = 46, DOOR=186;
   private Tile tiles[][];
   public GameMap(String name, Entity player, EntityManager em){
+    CMoving.setMap(this);
     try{
       Scanner sc = new Scanner(new File(name));
       width = sc.nextInt();
@@ -15,51 +16,48 @@ public class GameMap {
       for(int j =0; j< height; j++){
         for(int i = 0; i < width; i++){
           int data = sc.nextInt();
-          if(data == 1) data = WALL;
-          else if(data == 2 || data==4) data = FLOOR;
-          else if(data == 5) data = DOOR;
-          else if(data == 6) data = STAIRSUP;
-          else if(data == 7) data = STAIRSDOWN;   
+          if(data == DungeonGen.tileDirtWall) data = WALL;
+          else if(data == DungeonGen.tileDirtFloor || data==DungeonGen.tileCorridor) data = FLOOR;
+          else if(data == DungeonGen.tileDoor) data = DOOR;
+          else if(data == DungeonGen.tileUpStairs) data = STAIRSUP;
+          else if(data == DungeonGen.tileDownStairs) data = STAIRSDOWN;   
           tiles[i][j] = new Tile(data);
-          if(data == STAIRSUP){
-            ((CMoving)player.getComponent(CMoving.class)).setPos(new Position(i,j));
-            System.out.println("found it boss");
-          }
         }
       }
       while(sc.hasNext()){
         int x = sc.nextInt();
         int y = sc.nextInt();
         int type = sc.nextInt();
-        if(type <=10){
-          Entity enemy = new Entity();
-          enemy.addComponent(new CResources(enemy));
-          enemy.addComponent(new CMoving(enemy,x,y));
-          enemy.addComponent(new CAI(enemy, type*3));
-          em.addEntity(enemy);
+        int currHp = sc.nextInt();
+        if(type == 0){
+          ((CMoving)player.getComponent(CMoving.class)).setPos(new Position(x,y));
+        }
+        else if(type <=Entity.enemyAmount()){
+          em.addEntity(Entity.createEnemy(type, currHp,x,y));
         }
       }
+      sc.close();
     }catch(IOException e){
       throw new RuntimeException(name+": map file missing");
     }
   }
   public void writeMap(String name){
-    FileWriter fWriter = null;
-    BufferedWriter writer = null;
     try {
-      fWriter = new FileWriter(name);
-      writer = new BufferedWriter(fWriter);
+      BufferedWriter writer = new BufferedWriter( new FileWriter(name));
       writer.write(width  + " " + height);
       writer.newLine();
       for (int h = 0; h < height; h++){
         for (int l = 0; l < width; l++){
-          writer.write(get (h,l).tileType.ID + " ");
+          writer.write(get(l,h).tileType.ID + " ");
         }
+        writer.newLine();
       }
       for(CActor actor : CActor.getActors()){
         CMoving mov = (CMoving) actor.owner.getComponent(CMoving.class);
+        CResources heichp = (CResources) actor.owner.getComponent(CResources.class);
         if(mov == null) continue;
-        writer.write(mov.getX() + " " +mov.getY() + " " + actor.getSpeed());
+        writer.write(mov.getX() + " " +mov.getY() + " " + actor.owner.ID + " "+ heichp.getHP());
+        writer.newLine();
       }
       //  System.out.print(getCell(l,h) +" ");
       writer.newLine();
@@ -95,6 +93,15 @@ public class GameMap {
       for(int x = 0; x < width; x++){
         get(x, y).resetVisible();
       }
+    }
+  }
+  public static void clearMaps(){
+    try{
+      for(int i = 1; i <=30; i++){
+        File f = new File(i+".txt");
+        f.delete();
+      }
+    }catch(Exception ex){
     }
   }
   public Tile get(int x, int y){return tiles[x][y];}

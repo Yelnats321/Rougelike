@@ -7,8 +7,8 @@ public class CInventory extends CBase{
   
   public CInventory (Entity o){
     super(o);
-    addItem(InventoryItem.get("Adamant Dirk"));
-    addItem(InventoryItem.get("Steel Chestplate"));
+    addItem(InventoryItem.get("Bronze Dirk"));
+    addItem(InventoryItem.get("Bronze Chestplate"));
   }
   
   public boolean addItem(InventoryItem item){
@@ -25,6 +25,9 @@ public class CInventory extends CBase{
     }
     System.out.println("Can't pick up item, not enough space");
     return false;
+  }
+  public void removeItem(int pos){
+    items[pos] = null;
   }
   public void equip(InventoryItem item){
    // System.out.println("equiping "+item.name);

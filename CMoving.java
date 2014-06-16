@@ -7,16 +7,23 @@ class CMoving extends CBase{
   private boolean collideable;
   private static GameMap map;
   private static EntityManager entityManager;
+  private int imgID = 2;
 
-  public CMoving(Entity o, int x, int y){
-    this(o, x, y, true);
+  public CMoving(Entity o, int x, int y, int img){
+    this(o, x, y,img, true);
   }
-  public CMoving(Entity o,int x, int y, boolean col){
+  public CMoving(Entity o,int x, int y, int img, boolean col){
     super(o);
+    imgID = img;
     pos = new Position(x, y);
     collideable = col;
-    if(map!=null)
+    if(map!=null){
       map.setEntity(pos, owner);
+    }
+  }
+
+  public int getImg(){
+    return imgID;
   }
   @Override
   public void destroy(){
@@ -40,10 +47,10 @@ class CMoving extends CBase{
   public boolean move(Direction d){
     if(d == Direction.ABOVE || d == Direction.BELOW){
       if(d==Direction.ABOVE && map.get(pos.x,pos.y).tileType.ID == GameMap.STAIRSUP){
-        entityManager.goDown();
+        entityManager.goUp();
       }
       else if(d==Direction.BELOW && map.get(pos.x,pos.y).tileType.ID == GameMap.STAIRSDOWN){
-        entityManager.goUp();
+        entityManager.goDown();
       }
     }
     if(checkMove(d)){
@@ -57,7 +64,7 @@ class CMoving extends CBase{
   public boolean attack(Direction d){
     CResources res = (CResources)owner.getComponent(CResources.class);
     if(canAttack(d)){
-      ((CResources)map.get(pos.add(d.offset)).getEntity().getComponent(CResources.class)).damage(res.getAttack());
+      ((CResources)map.get(pos.add(d.offset)).getEntity().getComponent(CResources.class)).damage(res);
       return true;
     }
     return false;

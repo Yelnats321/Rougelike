@@ -1,6 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
 
 public class Renderer extends JPanel/* implements ActionListener*/{
   private JFrame mainFrame;
@@ -20,6 +21,7 @@ public class Renderer extends JPanel/* implements ActionListener*/{
     gui = g;
     EntityManager.setRenderer(this);
     setDoubleBuffered(true);
+    setBackground(Color.BLACK);
     this.setPreferredSize(new Dimension(WINDOW_X,WINDOW_Y));
     mainFrame = new JFrame("Roguelike");
     mainFrame.add(this);
@@ -28,6 +30,11 @@ public class Renderer extends JPanel/* implements ActionListener*/{
     mainFrame.addKeyListener(g);
     mainFrame.pack();
     mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    mainFrame.addWindowListener(new WindowAdapter(){
+      public void windowClosing(WindowEvent e){
+        GameMap.clearMaps();
+      }
+    });
   }
   public void updateOffset(){
     final int tilesPerX = WINDOW_X/TileData.TILE_X, tilesPerY = WINDOW_Y/TileData.TILE_Y;

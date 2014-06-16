@@ -8,21 +8,22 @@ public class EntityManager{
   private List<Entity> entities;
   private GUI gui;
   private int level = 1;
+  private boolean changedMap = false;
   public EntityManager(GUI gui){
     this.gui = gui;
     entities = new LinkedList<Entity>();
     Entity.setManager(this);
     CAI.setManager(this);
     CMoving.setManager(this);
-    player = new Entity();
+    player = new Entity("Player",0);
     player.addComponent(new CResources(player));
     player.addComponent(new CInventory(player));
-    player.addComponent(new CActor(player, 10, gui));
+    player.addComponent(new CActor(player, 250, gui));
     player.addComponent(new CLOS(player, 6));
-    player.addComponent(new CMoving(player,0,0));
-    DungeonGen.createDungeon(30,30,15,level);
+    CMoving mov = new CMoving(player,0,0,64);
+    player.addComponent(mov);
     Renderer.setPlayer(player);
-    changeMap(level+".txt");
+    changeMap(level+".txt", true);
   }
   public static void setRenderer(Renderer r){
     renderer = r;
@@ -39,6 +40,7 @@ public class EntityManager{
     //this should do the player's action, then whatever actions any other entity has to do based on speed and such
     LinkedList<CActor> moveList = generateList();
     for(CActor actor: moveList){
+      if(!actor.owner.live)continue;
       if(actor.owner.getComponent(CLOS.class) != null){
         ((CLOS)actor.owner.getComponent(CLOS.class)).update();
       }
@@ -47,9 +49,13 @@ public class EntityManager{
       }
       actor.act();
       if(!player.live){
-        System.out.println("died");
+        System.out.println("You died");
         gui.died();
         return;
+      }
+      if(changedMap){
+        changedMap = false;
+        break;
       }
     }
   }
@@ -88,11 +94,17 @@ public class EntityManager{
       }
     }
   }
-  private void changeMap(String name){
+  private void changeMap(String name, boolean desc){
+    changedMap =  true;
+    CActor.getActors().clear();
+    CActor.getActors().add((CActor)player.getComponent(CActor.class));
+    entities.clear();
+    int dx = RandomNumber.getRand(30+level,30+level*2), dy= RandomNumber.getRand(30+level,30+level*2);
+    DungeonGen.createDungeon(dx,dy,dx*dy/90,level, desc);
     map = new GameMap(name, player, this);
-    CMoving.setMap(map);
     CLOS.setMap(map);
     Renderer.setMap(map);
+    CResources.setMap(map);
     ((CMoving)player.getComponent(CMoving.class)).move(Direction.NONE);
     ((CLOS)player.getComponent(CLOS.class)).update();
     repaint();
@@ -105,10 +117,12 @@ public class EntityManager{
       i.remove();
     } 
     level++;
-    DungeonGen.createDungeon(30,30,15,level);
-    changeMap(level+".txt");
+    changeMap(level+".txt",true);
+    System.out.println("Descended the stairs to level "+level);
   }
-  public void goUp(){
+  public boolean goUp(){
+    if(level == 1)
+      return false;
     map.writeMap(level+".txt");
     Iterator i = entities.iterator();
     while(i.hasNext()){
@@ -116,8 +130,9 @@ public class EntityManager{
       i.remove();
     } 
     level--;
-    DungeonGen.createDungeon(30,30,15,level);
-    changeMap(level+".txt");
+    changeMap(level+".txt",false);
+    System.out.println("Ascended the stairs to level "+level);
+    return true;
   }
   public List<Entity> getEntities(){return entities;}
   public GameMap getMap(){ return map;}

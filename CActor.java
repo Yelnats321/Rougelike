@@ -7,10 +7,6 @@ class CActor extends CBase{
   private static List<CActor> actors = new LinkedList<CActor>();
   public CActor(Entity o, int s, Action a){
     super(o);
-    if(s <= 0){
-      s = 1;
-      System.out.println("Tried to initialize actor with a speed of less than 1");
-    }
     speed = s;
     currSpeed = s;
     action = a;

@@ -5,40 +5,28 @@ public class DungeonGen{
   //size of the map
   private static int xsize = 0;
   private static int ysize = 0;
-  public static int level = 0;
-  static int dungeon_objects = 0;
-  static int x = 0;
-  static int y = 0;
+
   
   //number of "objects" to generate on the map
   private static int objects = 0; 
-  private static int chanceRoom = 65; 
+  private static int chanceRoom = 75; 
   //our map
   private static int[] dungeon_map = {};
-  
-  //the old seed from the RNG is saved in this one
-  private static long oldseed = 0;
+ 
   
   //a list over tile types we're using
-  final private static int tileUnused = 0;
-  final private static int tileDirtWall = 1; //not in use
-  final private static int tileDirtFloor = 2;
-  final private static int tileStoneWall = 3;
-  final private static int tileCorridor = 4;
-  final private static int tileDoor = 5;
-  final private static int tileUpStairs = 6;
-  final private static int tileDownStairs = 7;
+  final public static int tileUnused = 0;
+  final public static int tileDirtWall = 1;
+  final public static int tileDirtFloor = 2;
+  final public static int tileStoneWall = 3; //not in use
+  final public static int tileCorridor = 4;
+  final public static int tileDoor = 5;
+  final public static int tileUpStairs = 6;
+  final public static int tileDownStairs = 7;
   
+ 
   
-  //misc. messages to print
-  private static String msgXSize = "X size of dungeon: \t";
-  private static String msgYSize = "Y size of dungeon: \t";
-  private static String msgMaxObjects = "max # of objects: \t";
-  private static String msgNumObjects = "# of objects made: \t";
-  private static String msgHelp = "";
-  private static String msgDetailedHelp = "";
-  
-  static void createDungeon(int inx, int iny, int inobj, int level) {
+  static void createDungeon(int inx, int iny, int inobj, int level, boolean descended) {
     
     if (inobj < 1) objects = 10;
     else objects = inobj;
@@ -49,9 +37,6 @@ public class DungeonGen{
     if (iny < 3) ysize = 3;
     else ysize = iny;
     
-    System.out.println(msgXSize + xsize);
-    System.out.println(msgYSize + ysize);
-    System.out.println(msgMaxObjects + objects);
     
     dungeon_map = new int[xsize * ysize];
     
@@ -65,7 +50,7 @@ public class DungeonGen{
       }
     }
     
-    makeRoom(xsize/2, ysize/2, 8, 6, getRand(0,3));
+    makeRoom(xsize/2, ysize/2, 8, 6, RandomNumber.getRand(0,3));
     
     int currentFeatures = 1; 
     for (int countingTries = 0; countingTries < 1000; countingTries++) {
@@ -81,8 +66,8 @@ public class DungeonGen{
       int validTile = -1;
       
       for (int testing = 0; testing < 1000; testing++) {
-        newx = getRand(1, xsize-1);
-        newy = getRand(1, ysize-1);
+        newx = RandomNumber.getRand(1, xsize-1);
+        newy = RandomNumber.getRand(1, ysize-1);
         validTile = -1;
         
         
@@ -126,7 +111,7 @@ public class DungeonGen{
       }
       
       if (validTile > -1) {
-        int feature = getRand(0, 100);
+        int feature = RandomNumber.getRand(0, 100);
         if (feature <= chanceRoom) { //a new room
           if (makeRoom((newx+xmod), (newy+ymod), 8, 6, validTile)) {
             currentFeatures++; //add to our quota
@@ -155,58 +140,55 @@ public class DungeonGen{
     int state = 0; 
     
     while (state != 10) {
-      for (int testing = 0; testing < 1000; testing++) {
-        newx = getRand(1, xsize-1);
-        newy = getRand(1, ysize-2); 
-        ways = 4; //the lower the better
-        
-        //check if we can reach the spot
-        if (getCell(newx, newy+1) == tileDirtFloor || getCell(newx, newy+1) == tileCorridor) {
-          //north
-          if (getCell(newx, newy+1) != tileDoor)
-            ways--;
+      newx = RandomNumber.getRand(1, xsize-1);
+      newy = RandomNumber.getRand(1, ysize-2); 
+      ways = 4; //the lower the better
+      
+      //check if we can reach the spot
+      if (getCell(newx, newy+1) == tileDirtFloor || getCell(newx, newy+1) == tileCorridor) {
+        //north
+        if (getCell(newx, newy+1) != tileDoor)
+          ways--;
+      }
+      
+      if (getCell(newx-1, newy) == tileDirtFloor || getCell(newx-1, newy) == tileCorridor) {
+        //east
+        if (getCell(newx-1, newy) != tileDoor)
+          ways--;
+      }
+      
+      if (getCell(newx, newy-1) == tileDirtFloor || getCell(newx, newy-1) == tileCorridor) {
+        //south
+        if (getCell(newx, newy-1) != tileDoor)
+          ways--;
+      }
+      
+      if (getCell(newx+1, newy) == tileDirtFloor || getCell(newx+1, newy) == tileCorridor) {
+        //west
+        if (getCell(newx+1, newy) != tileDoor)
+          ways--;
+      }
+      
+      if (state == 0) {
+        if (ways == 0) {
+          //we're in state 0, let's place a "upstairs" thing
+          setCell(newx, newy, tileUpStairs);
+          state = 1;
         }
-        
-        if (getCell(newx-1, newy) == tileDirtFloor || getCell(newx-1, newy) == tileCorridor) {
-          //east
-          if (getCell(newx-1, newy) != tileDoor)
-            ways--;
-        }
-        
-        if (getCell(newx, newy-1) == tileDirtFloor || getCell(newx, newy-1) == tileCorridor) {
-          //south
-          if (getCell(newx, newy-1) != tileDoor)
-            ways--;
-        }
-        
-        if (getCell(newx+1, newy) == tileDirtFloor || getCell(newx+1, newy) == tileCorridor) {
-          //west
-          if (getCell(newx+1, newy) != tileDoor)
-            ways--;
-        }
-        
-        if (state == 0) {
-          if (ways == 0) {
-            //we're in state 0, let's place a "upstairs" thing
-            setCell(newx, newy, tileUpStairs);
-            state = 1;
-            break;
-          }
-        }
-        
-        else if (state == 1) {
-          if (ways == 0) {
-            //state 1, place a "downstairs"
+      }
+      
+      else if (state == 1) {
+        if (ways == 0 && getCell(newx, newy) != tileUpStairs) {
+          //state 1, place a "downstairs"
+          if(level != 30)
             setCell(newx, newy, tileDownStairs);
-            state = 10;
-            break;
-          }
+          state = 10;
         }
+        
       }
     }
     
-    System.out.println(msgNumObjects + currentFeatures);
-    writeDungeon(level);
+    writeDungeon(level, descended);
     
   }
   
@@ -223,23 +205,8 @@ public class DungeonGen{
     return dungeon_map[p.x + xsize*p.y];
   }
   
-  private static int getRand(int min, int max) {
-// i readded the oldseed thing just so we dont get repeating seeds if we generate 2 levels simultanously(we shouldnt but its a just in case ting)
-    Date now = new Date();
-    long seed = now.getTime() + oldseed;
-    oldseed = seed; 
-    Random randomizer = new Random(seed);
-    int n = max - min + 1;
-    int i = randomizer.nextInt(n);
-    if (i < 0) i = -i;
-    
-    //System.out.println("seed: " + seed + "\tnum:  " + (min + i));
-    return min + i;
-  }
-  
-  
   private static boolean makeCorridor(int x, int y, int lenght, int direction) {
-    int len = getRand(2, lenght);
+    int len = RandomNumber.getRand(2, lenght);
     int floor = tileCorridor;
     int dir = 0;
     if (direction > 0 && direction < 4) dir = direction;
@@ -309,8 +276,8 @@ public class DungeonGen{
   
   
   private static boolean makeRoom(int x, int y, int xlength, int ylength, int direction) {
-    int xlen = getRand(4, xlength);
-    int ylen = getRand(4, ylength);
+    int xlen = RandomNumber.getRand(4, xlength);
+    int ylen = RandomNumber.getRand(4, ylength);
     
     int floor = tileDirtFloor; 
     int wall = tileDirtWall; 
@@ -408,15 +375,16 @@ public class DungeonGen{
     }
     return true;
   }
-  private static void writeDungeon(int level)
+  private static void writeDungeon(int level, boolean descended)
   {
     List<Position> posThing = new ArrayList<Position>();
+    Position entrance = new Position(0,0);
     FileWriter fWriter = null;
     BufferedWriter writer = null;
     try {
       fWriter = new FileWriter(level+ ".txt");
       writer = new BufferedWriter(fWriter);
-      writer.write((ysize-2)  + " " + (xsize-2));
+      writer.write((xsize-2)  + " " + (ysize-2));
       writer.newLine();
       for (int h = 0; h < ysize; h++){
         for (int l = 0; l < xsize; l++){
@@ -424,7 +392,14 @@ public class DungeonGen{
           }
           else {
             writer.write(getCell(l, h) + " ");
-            if(getRand(0, 100) <5){
+            if(descended){
+              if(getCell(l,h) == tileUpStairs){
+                entrance = new Position(l,h);
+              }
+            }
+            else if(getCell(l,h) == tileDownStairs)
+              entrance = new Position(l,h);
+            if(RandomNumber.getRand(0, 100) <3+level/5){
               posThing.add(new Position(l,h));
             }
           }
@@ -432,63 +407,27 @@ public class DungeonGen{
         //  System.out.print(getCell(l,h) +" ");
         writer.newLine();
       }
-      
+      writer.write(entrance.x-1 + " " +(entrance.y-1)+ " " + 0 +" " + 0);
+      writer.newLine();
       for(Position p : posThing){
         if(getCell(p) == tileDirtFloor ||
            getCell(p) == tileCorridor ||
            getCell(p) == tileDoor){
           //enemy
           //subb one because we aren't writing the walls around
-          if(getRand(0, 1) == 0){
-            writer.write(p.x-1 + " " + (p.y-1) +  " " +getRand(0,10));
+          if(RandomNumber.getRand(1, 5) > 1){
+            writer.write(p.x-1 + " " + (p.y-1) +  " " +Entity.pickEnemy(level) + " " + 0);
             writer.newLine();
           }
           //item
           else{
-            writer.write(p.x-1 + " " +( p.y-1) + " " +  getRand(10,20));
-            writer.newLine();
+            /*writer.write(p.x-1 + " " +( p.y-1) + " " +  getRand(10,20));
+            writer.newLine();*/
           }
         }
       }
       writer.close();
     }catch (Exception e) {
-    }
-  }
-  //
-  public static void showDungeon(){
-    for (int y = 0; y < ysize; y++){
-      for (int x = 0; x < xsize; x++){
-        switch(getCell(x, y)){
-          case tileUnused:
-            System.out.print(" ");
-            break;
-          case tileDirtWall:
-            System.out.print("+");
-            break;
-          case tileDirtFloor:
-            System.out.print(".");
-            break;
-            /*case tileStoneWall:
-             System.out.print("O");
-             break;*/
-          case tileCorridor:
-            System.out.print("#");
-            break;
-          case tileDoor:
-            System.out.print("D");
-            break;
-          case tileUpStairs:
-            System.out.print("<");
-            break;
-          case tileDownStairs:
-            System.out.print(">");
-            break;
-            /*case tileChest:
-             System.out.print("*");
-             break;*/
-        };
-      }
-      if (xsize <= 80) System.out.println();
     }
   }
 }
