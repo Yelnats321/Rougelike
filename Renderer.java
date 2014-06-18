@@ -17,9 +17,10 @@ public class Renderer extends JPanel/* implements ActionListener*/{
   public static void setPlayer(Entity p){
     player = p;
   }
-  public Renderer(GUI g){      
+  public Renderer(GUI g){
     gui = g;
     EntityManager.setRenderer(this);
+    GameMap.setRenderer(this);
     setDoubleBuffered(true);
     setBackground(Color.BLACK);
     this.setPreferredSize(new Dimension(WINDOW_X,WINDOW_Y));
@@ -27,7 +28,7 @@ public class Renderer extends JPanel/* implements ActionListener*/{
     mainFrame.add(this);
     mainFrame.setResizable(false);
     mainFrame.setVisible(true);
-    mainFrame.addKeyListener(g);
+    mainFrame.addKeyListener(gui);
     mainFrame.pack();
     mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     mainFrame.addWindowListener(new WindowAdapter(){
@@ -69,8 +70,6 @@ public class Renderer extends JPanel/* implements ActionListener*/{
     //System.out.println("repainted");
     super.paintComponent(g);
     Graphics2D g2d = (Graphics2D) g;
-    if(gui.getState() != GUI.State.MAIN_MENU)
-      map.draw(g2d, this);
     gui.draw(g2d);
   }
   

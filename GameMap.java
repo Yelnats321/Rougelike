@@ -5,6 +5,7 @@ import java.awt.*;
 public class GameMap {
   private final int width, height;
   public final static int STAIRSUP= 60, STAIRSDOWN=62, WALL = 219, FLOOR = 46, DOOR=186;
+  private static Renderer renderer;
   private Tile tiles[][];
   public GameMap(String name, Entity player, EntityManager em){
     CMoving.setMap(this);
@@ -95,6 +96,9 @@ public class GameMap {
     }catch (Exception e) {
     }
   }
+  public static void setRenderer(Renderer r){
+    renderer = r;
+  }
   public void setEntity(Position pos, Entity e){
     tiles[pos.x][pos.y].setEntity(e);
   }
@@ -102,7 +106,7 @@ public class GameMap {
    setEntity(new Position(x,y),e);
    }*/
   
-  public void draw(Graphics2D g2d, Renderer renderer){
+  public void draw(Graphics2D g2d){
     Position off = renderer.getOffset();
     for(int y = 0; y < height; y++){
       for(int x = 0; x < width; x++){
