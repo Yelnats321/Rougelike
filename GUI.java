@@ -10,7 +10,6 @@ import java.awt.Graphics2D;
 public class GUI implements KeyListener, Action{
   private enum State{
     GAME{
-      private CMoving mov;
       @Override
       public void draw(Graphics2D g2d){
         gui.entityManager.getMap().draw(g2d);
@@ -20,30 +19,30 @@ public class GUI implements KeyListener, Action{
         if(gui.waitLatch.getCount() == 0) return;
         switch(e.getKeyCode()){
           case KeyEvent.VK_W:
-            if(mov.move(Direction.UP) || mov.attack(Direction.UP))
+            if(gui.mov.move(Direction.UP) || gui.mov.attack(Direction.UP))
             gui.waitLatch.countDown();
             break;
           case KeyEvent.VK_A:
-            if(mov.move(Direction.LEFT) || mov.attack(Direction.LEFT))
+            if(gui.mov.move(Direction.LEFT) || gui.mov.attack(Direction.LEFT))
             gui.waitLatch.countDown();
             break;
           case KeyEvent.VK_S:
-            if(mov.move(Direction.DOWN) || mov.attack(Direction.DOWN))
+            if(gui.mov.move(Direction.DOWN) || gui.mov.attack(Direction.DOWN))
             gui.waitLatch.countDown();
             break;
           case KeyEvent.VK_D:
-            if(mov.move(Direction.RIGHT) || mov.attack(Direction.RIGHT))
+            if(gui.mov.move(Direction.RIGHT) || gui.mov.attack(Direction.RIGHT))
             gui.waitLatch.countDown();
             break;
           case KeyEvent.VK_PERIOD:
             if(e.isShiftDown()){
-            if(mov.move(Direction.BELOW))
+            if(gui.mov.move(Direction.BELOW))
               gui.waitLatch.countDown();
           }
             break;
           case KeyEvent.VK_COMMA:
             if(e.isShiftDown()){
-            if(mov.move(Direction.ABOVE))
+            if(gui.mov.move(Direction.ABOVE))
               gui.waitLatch.countDown();
           }
             break;
@@ -54,7 +53,7 @@ public class GUI implements KeyListener, Action{
             gui.waitLatch.countDown();
             break;
           case KeyEvent.VK_G:
-            if(gui.entityManager.getMap().get(mov.getPos()).itemAmount() >=1)
+            if(gui.entityManager.getMap().get(gui.mov.getPos()).itemAmount() >=1)
             PICKUP_MENU.change();
             break;     
         }
@@ -63,10 +62,6 @@ public class GUI implements KeyListener, Action{
       protected void change(){
         gui.renderer.repaint();
         gui.state= this;
-      }
-      @Override
-      public void update(){
-        gui.act();
       }
     }, INVENTORY(){
       private final int WIDTH = 6, HEIGHT = 3;
@@ -234,7 +229,7 @@ public class GUI implements KeyListener, Action{
         GAME.change();
         GameMap.clearMaps();
         gui.entityManager = new EntityManager(gui);
-        GUI.State.INVENTORY.clear();
+        INVENTORY.clear();
         
         gui.player = gui.entityManager.getPlayer();
         gui.inv = (CInventory)gui.player.getComponent(CInventory.class);
@@ -275,6 +270,11 @@ public class GUI implements KeyListener, Action{
           gui.renderer.repaint();
         }
       }
+      
+      @Override
+      public void update(){
+        gui.act();
+      }
     }, PICKUP_MENU{
       private int selected;
       private final String PICKUP_FILENAME="pickup.png";
@@ -301,8 +301,10 @@ public class GUI implements KeyListener, Action{
         gui.renderer.repaint();
       }
       private void move(Direction d){
-        if(inBounds(d.offset.y+selected))
+        if(inBounds(d.offset.y+selected)){
           selected = d.offset.y+selected;
+          gui.renderer.repaint();
+        }
       }
       @Override
       public void draw(Graphics2D g2d){
@@ -338,6 +340,7 @@ public class GUI implements KeyListener, Action{
       }
       @Override
       protected void change(){
+        selected = 0;
         gui.renderer.repaint();
         gui.state= this;
       }
@@ -349,6 +352,7 @@ public class GUI implements KeyListener, Action{
     public void update(){
       gui.entityManager.update();
     }
+    protected void clear(){}
   }
   private CountDownLatch waitLatch;
   private Entity player;
@@ -357,7 +361,7 @@ public class GUI implements KeyListener, Action{
   private CResources res;
   private CMoving mov;
   private Renderer renderer;
-  private State state;
+  private State state = State.MAIN_MENU;
   private static GUI gui;
   
   public GUI(){
