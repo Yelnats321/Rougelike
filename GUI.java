@@ -59,13 +59,16 @@ public class GUI implements KeyListener, Action{
   public State getState(){return state;}
   
   private boolean inBounds(Position d){
-    if(state == State.INVENTORY)
-      return(d.x >= 0 && d.x < WIDTH && d.y>=0 && d.y< HEIGHT);
-    else if(state == State.MAIN_MENU)
-      return (d.y >= 0 && d.y <1 && d.x == 0);
-    else if(state == State.PICKUP_MENU)
-      return(d.y>=0 && d.y<entityManager.getMap().get(mov.getPos()).getItems().size());
-    return false;
+    switch(state){
+      case INVENTORY:
+        return(d.x >= 0 && d.x < WIDTH && d.y>=0 && d.y< HEIGHT);
+      case MAIN_MENU:
+        return (d.y >= 0 && d.y <1 && d.x == 0);
+      case PICKUP_MENU:
+        return(d.y>=0 && d.y<entityManager.getMap().get(mov.getPos()).getItems().size());
+      default:
+        return false;
+    }
   }
   private void move(Direction d){
     if(inBounds(d.offset.add(selectedPos))){
@@ -87,53 +90,57 @@ public class GUI implements KeyListener, Action{
     renderer.repaint();
   }
   private void select(){
-    if(state == State.INVENTORY){
-      InventoryItem item = inv.getItem(selectedPos.x+ selectedPos.y*WIDTH);
-      if (item == null) return;
-      if(item.type != InventoryItem.Type.MISC){
-        if(selectedPos.equals(equipedPos1) || selectedPos.equals(equipedPos2)){
-          inv.unequip(item);
-          if(selectedPos.equals(equipedPos1)){
-            equipedPos1 = null;
+    switch(state){
+      case INVENTORY:
+        InventoryItem item = inv.getItem(selectedPos.x+ selectedPos.y*WIDTH);
+        if (item == null) return;
+        if(item.type != InventoryItem.Type.MISC){
+          if(selectedPos.equals(equipedPos1) || selectedPos.equals(equipedPos2)){
+            inv.unequip(item);
+            if(selectedPos.equals(equipedPos1)){
+              equipedPos1 = null;
+            }
+            else{
+              equipedPos2 = null;
+            }
           }
           else{
-            equipedPos2 = null;
+            inv.equip(item);
+            if(item.type == InventoryItem.Type.WEAPON){
+              equipedPos1 = (Position)selectedPos.clone();
+            }
+            else 
+              equipedPos2 = (Position)selectedPos.clone();
           }
-        }
-        else{
-          inv.equip(item);
-          if(item.type == InventoryItem.Type.WEAPON){
-            equipedPos1 = (Position)selectedPos.clone();
-          }
-          else 
-            equipedPos2 = (Position)selectedPos.clone();
-        }
-        renderer.repaint();
-        waitLatch.countDown();
-      }
-      else{
-        if(res.quaff(item)){
-          inv.removeItem(selectedPos.x+ selectedPos.y*WIDTH);
           renderer.repaint();
           waitLatch.countDown();
         }
-      }
-    }
-    else if(state == State.MAIN_MENU){
-      if(selectedPos.y ==0){
+        else{
+          if(res.quaff(item)){
+            inv.removeItem(selectedPos.x+ selectedPos.y*WIDTH);
+            renderer.repaint();
+            waitLatch.countDown();
+          }
+        }
+        
+        break;
+      case MAIN_MENU:
+        if(selectedPos.y ==0){
         newGame();
         waitLatch.countDown();
       }
-    }
-    else if(state == State.PICKUP_MENU){
-      if(entityManager.getMap().get(mov.getPos()).pickup(selectedPos.y, inv)){
+        
+        break;
+      case PICKUP_MENU:
+        if(entityManager.getMap().get(mov.getPos()).pickup(selectedPos.y, inv)){
         if(!inBounds(selectedPos))
           selectedPos.y--;
         if(selectedPos.y == -1)
           closeMenu();
         waitLatch.countDown();
       }
-      renderer.repaint();
+        renderer.repaint();
+        break;
     }
   }
   private void openInventory(){
@@ -151,41 +158,43 @@ public class GUI implements KeyListener, Action{
     renderer.repaint();
   }
   public void draw(Graphics2D g2d){
-    if(state == State.INVENTORY){
-      g2d.drawImage(INVENTORY_FILE, 20,40, null);
-      g2d.drawImage(INVENTORY_SELECTOR_FILE, selectedPos.x*43 +60+20, selectedPos.y*41 + 200+40,null);
-      for(int y = 0; y < HEIGHT; y++){
-        for(int x = 0; x< WIDTH; x++){
-          if(inv.getItem(x+y*WIDTH)!=null)
-            inv.getItem(x+y*WIDTH).draw(g2d,x*43+66+20,y*41+205+40);
+    switch(state){
+      case INVENTORY:
+        g2d.drawImage(INVENTORY_FILE, 20,40, null);
+        g2d.drawImage(INVENTORY_SELECTOR_FILE, selectedPos.x*43 +60+20, selectedPos.y*41 + 200+40,null);
+        for(int y = 0; y < HEIGHT; y++){
+          for(int x = 0; x< WIDTH; x++){
+            if(inv.getItem(x+y*WIDTH)!=null)
+              inv.getItem(x+y*WIDTH).draw(g2d,x*43+66+20,y*41+205+40);
+          }
         }
-      }
-      if(equipedPos1 != null)
-        g2d.drawImage(INVENTORY_SELECTED_FILE, equipedPos1.x*43 +66+20, equipedPos1.y*41 + 205+40,null);
-      if(equipedPos2 != null)
-        g2d.drawImage(INVENTORY_SELECTED_FILE, equipedPos2.x*43 +66+20, equipedPos2.y*41 + 205+40,null);
-      
-      g2d.setFont(new Font("TimesRoman", Font.PLAIN, 16));
-      g2d.setColor(Color.WHITE);
-      g2d.drawString(res.getLevel()+"", 109+20, 109+20+4);
-      g2d.drawString(res.getXP() + "/" + res.getNeededXP(), 109+20+134, 109+20+4);
-      g2d.drawString(res.getHP() + "/" + res.getMaxHP(), 109+20, 109+20+4+16);
-      g2d.drawString(res.getDefense()+"", 109+20, 109+20+4+16*2);
-      g2d.drawString(res.getAttack()+"", 109+20, 109+20+4+16*3);
-    }
-    else if(state == State.MAIN_MENU){
-      g2d.drawImage(MAIN_MENU_FILE, 0, 0, null);
-    }
-    else if(state == State.PICKUP_MENU){
-      g2d.drawImage(PICKUP_FILE,20,20,null);
-      for(int i = 0; i < entityManager.getMap().get(mov.getPos()).getItems().size(); i++){
-        if(i == selectedPos.y){
-          g2d.setColor(Color.BLUE);
+        if(equipedPos1 != null)
+          g2d.drawImage(INVENTORY_SELECTED_FILE, equipedPos1.x*43 +66+20, equipedPos1.y*41 + 205+40,null);
+        if(equipedPos2 != null)
+          g2d.drawImage(INVENTORY_SELECTED_FILE, equipedPos2.x*43 +66+20, equipedPos2.y*41 + 205+40,null);
+        
+        g2d.setFont(new Font("TimesRoman", Font.PLAIN, 16));
+        g2d.setColor(Color.WHITE);
+        g2d.drawString(res.getLevel()+"", 109+20, 109+20+4);
+        g2d.drawString(res.getXP() + "/" + res.getNeededXP(), 109+20+134, 109+20+4);
+        g2d.drawString(res.getHP() + "/" + res.getMaxHP(), 109+20, 109+20+4+16);
+        g2d.drawString(res.getDefense()+"", 109+20, 109+20+4+16*2);
+        g2d.drawString(res.getAttack()+"", 109+20, 109+20+4+16*3);
+        break;
+      case MAIN_MENU:
+        g2d.drawImage(MAIN_MENU_FILE, 0, 0, null);
+        break;
+      case PICKUP_MENU:
+        g2d.drawImage(PICKUP_FILE,20,20,null);
+        for(int i = 0; i < entityManager.getMap().get(mov.getPos()).getItems().size(); i++){
+          if(i == selectedPos.y){
+            g2d.setColor(Color.BLUE);
+          }
+          else
+            g2d.setColor(Color.WHITE);
+          g2d.drawString(entityManager.getMap().get(mov.getPos()).getItems().get(i).name, 100, 100+20*i);
         }
-        else
-          g2d.setColor(Color.WHITE);
-        g2d.drawString(entityManager.getMap().get(mov.getPos()).getItems().get(i).name, 100, 100+20*i);
-      }
+        break;
     }
   }
   private void drop(){
@@ -284,7 +293,7 @@ public class GUI implements KeyListener, Action{
         if(e.getKeyCode() == KeyEvent.VK_ESCAPE)            
         closeMenu();
       case MAIN_MENU:
-        switch(Character.toUpperCase(e.getKeyChar())){
+        switch(e.getKeyCode()){
         case KeyEvent.VK_W:
           move(Direction.UP);
           break;
